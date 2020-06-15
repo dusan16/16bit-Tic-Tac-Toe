@@ -4,7 +4,6 @@
 ;numbers 1-9 are used for drawing symbols
 ;set the cpu speed to 1kHz and the intro schould last about 
 ;10 seconds and then the board will be printed and the game will start
-;haven't made it to draw x so i drew diffrent symbols
 
 
 

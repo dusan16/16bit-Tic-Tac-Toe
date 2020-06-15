@@ -1,0 +1,362 @@
+;Tic-Tac-Toe game
+;I haven't done the winner determination in the game 
+;just have drawing symbols on the board using the num pad
+;numbers 1-9 are used for drawing symbols
+;set the cpu speed to 1kHz and the intro schould last about 
+;10 seconds and then the board will be printed and the game will start
+;haven't made it to draw x so i drew diffrent symbols
+
+
+
+;jump to main program
+JMP boot
+;this is address where interuprt service routine schould be
+JMP isr
+;draw the board of tic tac
+board: 										 
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+	DB "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+	DB "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\x00\x00\xFF\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+    
+;drawing the graphics for intro    
+intro:
+	DB "\x00\x00\x00\x00\xFF\xFF\xFF\x00"
+	DB "\xFF\x00\xFF\xFF\xFF\x00\x00\x00";1
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\xFF\x00\xFF\x00\x00\x00\x00\x00";2
+	DB "\x00\x00\x00\x00\x00\xFF\x00\x00"
+	DB "\xFF\x00\xFF\xFF\xFF\x00\x00\x00";3
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00";4
+	DB "\x00\x00\x00\xFF\xFF\xFF\x00\x00";***************
+	DB "\xFF\x00\x00\x00\xFF\xFF\xFF\x00";5
+	DB "\x00\x00\x00\x00\xFF\x00\x00\xFF"
+	DB "\xFF\xFF\x00\x00\xFF\x00\x00\x00";6
+	DB "\x00\x00\x00\x00\xFF\x00\xFF\x00"
+	DB "\x00\x00\xFF\x00\xFF\xFF\xFF\x00";7
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00";8
+	DB "\x00\x00\x00\xFF\xFF\xFF\x00\xFF";*******************
+	DB "\xFF\xFF\x00\xFF\xFF\xFF\x00\x00";9
+	DB "\x00\x00\x00\x00\xFF\x00\x00\xFF"
+	DB "\x00\xFF\x00\xFF\x00\x00\x00\x00";10
+	DB "\x00\x00\x00\x00\xFF\x00\x00\xFF"
+	DB "\x00\xFF\x00\xFF\xFF\xFF\x00\x00";11
+	DB "\x00\x00\x00\x00\xFF\x00\x00\xFF"
+	DB "\x00\xFF\x00\xFF\x00\x00\x00\x00";12
+	DB "\x00\x00\x00\x00\xFF\x00\x00\xFF"
+	DB "\xFF\xFF\x00\xFF\xFF\xFF\x00\x00";13
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00";14
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00";15
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00"
+	DB "\x00\x00\x00\x00\x00\x00\x00\x00";16
+ 
+
+;These two variables determine which positions are occupided
+;on the board
+
+pos_x: DW 0x0000
+pos_o: DW 0x0000
+
+valueLast: DW 0x0000
+;Active variable determines which symbol is drawn 
+;
+active: DB 0x01
+;
+;no_mov is used to limit number of moves
+;this I wanted to use for logic of the game but haven't finished
+;it in time
+
+no_mov: DB 0x01
+
+
+;Main part of program
+boot: 
+	MOV SP, 0x0EDF
+	CALL printintro		; print the intro of the game
+    MOV A, 1			; enable keyboard interupts
+    OUT 0				; send it to interupt mask
+    STI					; enable interupts(M = 1)
+    HLT
+
+
+;This segment is dedicated for printing the intro
+;of the game and for printing the board of the game 
+
+printintro:
+	PUSH intro
+    PUSH 0x0F00
+    CALL print
+    MOV B, 0x03E8
+cc:
+	CMP B, 0x0000
+    JZ nd
+    SUB B, 0x0001
+    JMP cc
+nd: 
+	PUSH 0x0F00
+	CALL clear_board
+    PUSH board
+    PUSH 0x0F00
+    CALL print
+	RET
+    
+    
+; The print function for drawing static graphics on the screen    
+print:
+	POP B
+    POP D
+    POP C
+    PUSH B
+loop:
+	MOVB AL, [C]
+	MOVB [D], AL
+	INC C
+	INC D
+	CMP D, 0x0FFF
+	JNZ loop
+	RET	
+
+
+; The clear function clears screen 
+clear_board:
+	POP C
+    POP D
+    PUSH C
+lp:
+	MOVB [D], 0x00
+	INC D
+	CMP D, 0x0FFF
+	JNZ lp
+	RET	
+    
+;This segment handles the interuptrs and printing the
+;symbols on the board and all logic
+
+isr:
+	PUSH A 				;we push A register for keyboard value
+    IN 6				;take value of last pressed key
+    MOVB DH, [no_mov]	;move number of moves in higher part of D
+    CMPB DH, 0x0F		;this part schould be used for determing winner but is not finished
+    JBE get_value		;we jump to get_value where we check which symbol is active
+    JMP endofist
+
+get_value:
+	INCB DH
+    MOVB [no_mov], DH 	;this part is useless
+	SUBB AL, 0x30		;we get the number which is pressed by subing from ascii value
+    MOV [valueLast], A
+    MOVB DL, [active]   ;we put value of active sign in DL
+    CMPB DL, 0x01		;we check which symbol is
+    JZ drawo			;if 1 then O is drawn
+    JMP drawx			;else X
+    
+drawo:					
+	MOVB DL, 0x00		;change active symbol
+    MOVB [active], DL 	;store back the value back to mem.
+	MOV B, [pos_o]		;move the positions of o to reg B
+    MOV C, 1			;move the mask to C
+    SHL C, A			;shift the mask for value of position times
+    AND B, C			;we AND the positions to check
+    CMP B, 0			;if the value is zero then the position isn't occupied
+    JZ check_x			;do same for positions of X
+    MOVB DL, [active]	;if it is occupied then keep symbol till you fill empty field
+    MOVB DL, 0x01
+    MOVB [active], DL
+    JMP endofist		;jump to end of interupt routine
+check_x:				;same check for X positions
+	MOV B, [pos_x]
+    MOV C, 1
+    SHL C, A
+    AND B, C
+    CMP B, 0
+    JZ stdraw_o
+    MOVB DL, [active]
+    MOVB DL, 0x01
+    MOVB [active], DL
+    JMP endofist
+endofist:				;end of ist clears interupts and ends it
+	MOV A, 1			;clear value from interupt reg
+    OUT 2				;end the interupt
+	POP A				;free reg A
+    IRET				;return from interupt
+stdraw_o:				;this part adds new position to list of occupided positions
+	MOV B, [pos_o]		;move the value to B
+    XOR B, C			;with XOR keep original value and add new value 
+    MOV [pos_o], B		;store back memory positions
+    MOV D, 0x0FC2		;move beggining address of drawing
+    MOV C, 0x0000		;clear C reg
+dest:					;in this label we determine coordinates of the symbol
+   	CMP A, 0x0000 		
+    JZ coordinates		;if A is zero move to coordinates label
+    INCB CL				;increment the number of rows
+    CMPB CL, 0x04		;check if we reached the end of the row
+    JAE nextrow			;if we did move one row up
+    DEC A				;if we didn't decrement A
+    JMP dest  			;move back up
+nextrow:				;this parts adds new row to coordinate
+	INCB CH				;increment CH where we store row num.
+    MOVB CL, 0x00		;reset the coordinate of collumn
+    INCB CL				;increment the CL
+    DEC A				;decrement A
+    JMP dest			;jump back to collumn count
+coordinates:			;in this part we draw the symbol O
+	CALL find_begin		;find_begin is function which moves us to right address in memory for drawing
+    MOVB BL, 0xFF		;this we use for setting white pixel
+    MOVB [D], BL		;this part is how we draw the O symbol
+    INC D				;move one pixel to right
+    MOVB [D], BL		;add pixel at that position
+    ADD D, 0x000F		;move one row down
+    MOVB [D], BL		;add pixel
+    INC D				;move one pixel right
+    MOVB [D], BL		;add pixel
+    JMP checkwin		;we end the interupt here
+    
+;I determined that the begging addres is always at the cell of number 1 on numpad
+
+find_begin:				;this is function used for determing the right address for drawing
+	CMPB CL, 0x01		;check if we are at leftmost collumn
+    JZ check_cols		;if we are we go to moving rows
+    DECB CL				;if not we decrement value of collumn
+    ADD D, 0x0005		;and move address to the next cell
+    JMP find_begin		;jump to beggining of function
+check_cols:				;this part is used to move to upper rows
+	CMPB CH, 0x00		;check if we are at bottom row
+    JZ ende				;if we are end
+    DECB CH				;if not decrement number of rows
+    SUB D, 0x0060		;move to upper addres of row
+    JMP check_cols		;jump back till you CH is 0
+ende:
+    RET
+;This is the same code as above for the O so I won't write any
+;comments below since it is all the same as above, just in coordinates_x
+;label the drawing is a bit differently implemented since I used different shape
+drawx:
+	MOVB DL, 0x01
+    MOVB [active], DL
+	MOV B, [pos_x]
+    MOV C, 1
+    SHL C, A
+    AND B, C
+    CMP B, 0
+    JZ check_o
+    MOVB DL, [active]
+    MOVB DL, 0x00
+    MOVB [active], DL
+    JMP endofist
+check_o:
+	MOV B, [pos_o]
+    MOV C, 1
+    SHL C, A
+    AND B, C
+    CMP B, 0
+    JZ stdraw_x
+    MOVB DL, [active]
+    MOVB DL, 0x00
+    MOVB [active], DL
+    JMP endofist
+stdraw_x:
+	MOV B, [pos_x]
+    XOR B, C
+    MOV [pos_x], B
+    MOV D, 0x0FC2
+    MOV C, 0x0000
+dest_x:
+   	CMP A, 0x0000
+    JZ coordinates_x
+    INCB CL
+    CMPB CL, 0x04
+    JZ nextrow_x
+    DEC A
+    JMP dest_x  
+nextrow_x:
+	INCB CH
+    MOVB CL, 0x00
+    INCB CL
+    DEC A
+    JMP dest_x
+coordinates_x:
+	CALL find_begin
+    MOVB BL, 0xFF
+    MOVB [D], BL
+    INC D
+    ADD D, 0x000F
+    INC D
+    MOVB [D], BL
+    JMP checkwin
+    
+checkwin:
+	MOVB BL, [active]
+    CMPB BL, 0x00
+    JZ check_o
+    JMP check_x
+
+check_o:
+	MOVB [active], BL
+    MOV B, [pos_o]
+    MOV C, [valueLast]
+    MOV D, 0x0001
+    CMP C, 7
+    JAE topr
+    JMP mid
+mid:
+	CMP C, 4
+    JAE midr
+    JMP botr
+botr: 
+	SHL D, 1
+  	AND B, D
+    
+    
+    
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
